@@ -35,5 +35,40 @@
  *   // => { attempts: 5, success: false, totalWaitTime: 15 }
  */
 export function upiRetry(outcomes) {
-  // Your code here
+  const zeroed = { attempts: 0, success: false, totalWaitTime: 0 };
+
+  if (!Array.isArray(outcomes) || outcomes.length === 0) {
+    return zeroed;
+  }
+
+  let attempts = 0;
+  let success = false;
+  let totalWaitTime = 0;
+  const maxAttempts = 5;
+
+  do {
+    const outcome = outcomes[attempts];
+    attempts++;
+
+    if (outcome === 'success') {
+      success = true;
+      break;
+    }
+
+    // Failed attempt - add wait time if not at max attempts
+    if (attempts < maxAttempts) {
+      const waitTime = Math.pow(2, attempts - 1); // 1, 2, 4, 8
+      totalWaitTime += waitTime;
+    }
+  } while (attempts < maxAttempts);
+
+  // If we exhausted all attempts without success, add the last wait time
+  if (!success && attempts === maxAttempts) {
+    // Wait time is already added for attempts 1-4, need to add for attempt 4->5 wait
+    // Actually, wait time is added AFTER a failed attempt, before next retry
+    // So for 5 failed attempts: wait after 1st, 2nd, 3rd, 4th = 1+2+4+8 = 15
+    totalWaitTime = 1 + 2 + 4 + 8; // = 15
+  }
+
+  return { attempts, success, totalWaitTime };
 }
